@@ -62,6 +62,7 @@ app.post('/convert', upload.single('file'), (req, res) => {
         execSync(`convert `
             + `-density ${+(req.body.density ?? 300)} `
             + `-background '${req.body.background ?? 'white'}' `
+            + `-font DejaVu-Sans `
             + `-flatten `
             + `-resize ${+(req.body.width ?? 800)}x${+(req.body.height ?? 600)} `
             + `-quality ${+(req.body.quality ?? 80)}% `
