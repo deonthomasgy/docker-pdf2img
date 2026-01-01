@@ -3,8 +3,9 @@
 [![Build and push](https://github.com/joanfabregat/pdf2img/actions/workflows/build.yml/badge.svg)](https://github.com/joanfabregat/pdf2img/actions/workflows/build.yml)
 [![Docker Image Version](https://img.shields.io/docker/v/joanfabregat/pdf2img?sort=semver&label=Docker%20Hub&color=red)](https://hub.docker.com/r/joanfabregat/pdf2img/tags)
 
-A lightweight Express.js service that converts PDF files to various image formats base
-on [ImageMagick](https://imagemagick.org/).
+A lightweight Express.js service that converts PDF files to various image formats using 
+[Poppler's pdftocairo](https://poppler.freedesktop.org/) for high-quality PDF rendering 
+and [ImageMagick](https://imagemagick.org/) for post-processing.
 
 ## Features
 
@@ -15,6 +16,7 @@ on [ImageMagick](https://imagemagick.org/).
 ## Requirements
 
 - Node.js (v14 or higher recommended)
+- Poppler Utils (`pdftocairo` command must be available in your PATH)
 - ImageMagick (`convert` command must be available in your PATH)
 
 ## Installation
@@ -32,7 +34,14 @@ cd pdf-to-image
 npm install
 ```
 
-3. Ensure ImageMagick is installed:
+3. Install system dependencies:
+    
+    **Poppler Utils** (for PDF rendering):
+    - **Linux/Ubuntu/Debian**: `sudo apt-get install poppler-utils`
+    - **macOS**: `brew install poppler`
+    - **Windows**: Download from [Poppler for Windows](https://github.com/oschwartz10612/poppler-windows/releases/)
+    
+    **ImageMagick** (for image post-processing):
     - **Linux**: `sudo apt-get install imagemagick`
     - **macOS**: `brew install imagemagick`
     - **Windows**: Download from [ImageMagick website](https://imagemagick.org/script/download.php)

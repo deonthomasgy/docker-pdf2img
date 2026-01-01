@@ -56,24 +56,39 @@ app.post('/convert', upload.single('file'), (req, res) => {
     const pdfPath = `${TEMP_DIR}/${req.file.filename}`;
     const imagePath = `${TEMP_DIR}/${uniqid()}.${format}`;
 
-    // converting the PDF file to images
+    // converting the PDF file to images using poppler's pdftocairo
     console.log(`Converting PDF ${req.file.originalname} to ${format}`);
+    const density = +(req.body.density ?? 300);
+    const page = +(req.body.page ?? 1);
+    const width = +(req.body.width ?? 800);
+    const height = +(req.body.height ?? 600);
+    const quality = +(req.body.quality ?? 80);
+    const background = req.body.background ?? 'white';
+    
+    // Temporary PNG file from pdftocairo
+    const tempPngPath = `${TEMP_DIR}/${uniqid()}.png`;
+    
     try {
+        // Step 1: Use pdftocairo to render PDF to PNG with proper font handling
+        console.log(`Using pdftocairo for PDF rendering at ${density} DPI`);
+        execSync(`pdftocairo -png -r ${density} -f ${page} -l ${page} -singlefile "${pdfPath}" "${tempPngPath.replace('.png', '')}"`);
+        
+        // Step 2: Use ImageMagick to post-process (resize, change format, adjust quality)
+        console.log(`Post-processing with ImageMagick to ${format}`);
         execSync(`convert `
-            + `-density ${+(req.body.density ?? 300)} `
-            + `-background '${req.body.background ?? 'white'}' `
-            + `-font DejaVu-Sans `
+            + `"${tempPngPath}" `
+            + `-background '${background}' `
             + `-flatten `
-            + `-resize ${+(req.body.width ?? 800)}x${+(req.body.height ?? 600)} `
-            + `-quality ${+(req.body.quality ?? 80)}% `
-            + `pdf:${pdfPath}[${(+(req.body.page ?? 1) - 1)}] `
-            + `${req.body.format ?? 'webp'}:${imagePath}`);
+            + `-resize ${width}x${height} `
+            + `-quality ${quality}% `
+            + `${format}:${imagePath}`);
 
         // sending the images as a response
         // await res.download(imagePath);
         res.sendFile(imagePath, {root: path.resolve()}, () => {
             // cleaning up
             fs.unlinkSync(pdfPath);
+            fs.unlinkSync(tempPngPath);
             fs.unlinkSync(imagePath);
         });
     }
@@ -81,7 +96,9 @@ app.post('/convert', upload.single('file'), (req, res) => {
         console.error(e.message);
         res.status(400);
         res.send({error: e.message});
-        fs.unlinkSync(pdfPath);
+        // Clean up any files that might exist
+        if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
+        if (fs.existsSync(tempPngPath)) fs.unlinkSync(tempPngPath);
     }
 });
 

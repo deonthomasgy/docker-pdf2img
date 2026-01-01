@@ -14,6 +14,11 @@ ENV PORT=3000
 ENV NODE_ENV=production
 WORKDIR /app
 
+# Install system dependencies:
+# - imagemagick: for image post-processing (convert command)
+# - imagemagick-pdf: PDF support for ImageMagick
+# - poppler-utils: PDF rendering tools (includes pdftocairo for high-quality PDF to image conversion)
+# - fonts: various font packages for better text rendering
 RUN apk add --no-cache imagemagick imagemagick-pdf poppler-utils \
     ttf-liberation ttf-dejavu fontconfig \
     font-noto font-noto-cjk font-noto-emoji \
