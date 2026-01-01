@@ -15,7 +15,10 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 RUN apk add --no-cache imagemagick imagemagick-pdf poppler-utils \
-    ttf-liberation ttf-dejavu fontconfig
+    ttf-liberation ttf-dejavu fontconfig \
+    font-noto font-noto-cjk font-noto-emoji \
+    ttf-opensans font-awesome \
+    font-terminus font-inconsolata
 
 
 ##
