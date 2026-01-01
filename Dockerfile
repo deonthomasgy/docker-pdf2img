@@ -17,6 +17,11 @@ WORKDIR /app
 RUN apk add --no-cache imagemagick imagemagick-pdf poppler-utils \
     ttf-liberation ttf-dejavu fontconfig
 
+# Copy MyriadPro fonts (assuming they are in a fonts/ directory)
+COPY fonts/MyriadPro-Regular.ttf /usr/share/fonts/truetype/
+COPY fonts/MyriadPro-Bold.ttf /usr/share/fonts/truetype/
+RUN fc-cache -fv
+
 
 ##
 # Dev image
