@@ -1,0 +1,78 @@
+{
+  "source_backup": "/home/thomas/pdf2img-security-backups/20261025T193654Z",
+  "destination_backup": "/home/thomas/pdf2img-security-backups/20261025T193541Z",
+  "state_archive_sha256": "7700b2a9b4c63b8aa7efebfa18fb6213fc023c871828097bee86a493cf0b4ea0",
+  "image": "princeamd/pdf2img:20261025-node24-r1@sha256:5c5a5608a6539f81622330721696c8379a6a879c5135536e9f62533950ce666d",
+  "verified_at": "2026-10-25T19:39:07.743930+00:00",
+  "source_host": "mintage-hcp-host-1",
+  "destination_host": "mintage-apps",
+  "source_container_removed": true,
+  "source_compose_disabled_profile": "migrated-retired",
+  "destination_compose": "/home/thomas/pdf2img/docker-compose.yml",
+  "image_source_revision": "48a1f5fa29136b5708c3a1278d50c8f4960adef2",
+  "container_healthy": true,
+  "restart_count": 0,
+  "runtime_user": "node",
+  "memory_limit_bytes": 1073741824,
+  "tests": {
+    "local": {
+      "passed": 31,
+      "failed": 0
+    },
+    "destination": {
+      "passed": 31,
+      "failed": 0
+    },
+    "github_actions": "https://github.com/deonthomasgy/docker-pdf2img/actions/runs/40226660550"
+  },
+  "tailscale_identity_preserved": {
+    "id": "nCLkUQqx4e11CNTRL",
+    "dns": "pdf2img.sphinx-butterfly.ts.net.",
+    "ips": [
+      "100.101.155.71",
+      "fd7a:115c:a1e0::ba39:9b48"
+    ],
+    "online": true
+  },
+  "production_smoke": {
+    "url": "https://pdf2img.sphinx-butterfly.ts.net",
+    "metadata": {
+      "upSince": "2026-10-25T19:37:30.319Z",
+      "version": "20261025-node24-r1",
+      "buildId": "local",
+      "commitSha": "48a1f5fa29136b5708c3a1278d50c8f4960adef2"
+    },
+    "conversions": [
+      {
+        "format": "webp",
+        "status": 200,
+        "bytes": 4004,
+        "content_type": "image/webp"
+      },
+      {
+        "format": "pdf",
+        "status": 200,
+        "bytes": 8627,
+        "content_type": "application/pdf"
+      }
+    ]
+  },
+  "existing_destination_routes": {
+    "count": 9,
+    "all_healthy": true,
+    "proxy_container_unchanged": true
+  },
+  "unrelated_observations": "monitor and anker-collector container IDs changed during the work; neither was modified by this migration. All existing proxy routes remained healthy.",
+  "scan": {
+    "all_severities": {},
+    "critical_high_gate_exit_code": 0,
+    "suppression_files": false
+  },
+  "reports_sha256": {
+    "before.json": "1b1ffd6e78a96818e84b34bc93bbddac293fcbc4f4eb5736adbaad26a3a4dd7a",
+    "after.json": "e430b6178dcd1b096c0ed5f16922ce55755a82dedd0217fe657fe248d8feb752",
+    "release-tests.log": "fd247c4d950ed301d98f944c93bebf425ac8a916cde51fcf01b906b3bc9fe3d2",
+    "destination-tests.log": "7ae5222fddc00b257427f91eb69507f6dc71a1341a4e2b858fc65fd4235410ef",
+    "critical-high.txt": "c146a9e52ccd6ed49d2dadcc39290ae85c996ab29a60a1f285cf7f977f70de33"
+  }
+}

@@ -1526,5 +1526,7 @@
         "CVE-2026-73566"
       ]
     }
-  ]
+  ],
+  "after_image": "princeamd/pdf2img:20261025-node24-r1@sha256:5c5a5608a6539f81622330721696c8379a6a879c5135536e9f62533950ce666d",
+  "after_source_revision": "48a1f5fa29136b5708c3a1278d50c8f4960adef2"
 }
