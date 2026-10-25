@@ -1,12 +1,16 @@
 {
-  "name": "office2pdf",
+  "name": "pdf2img",
   "type": "module",
   "license": "MIT",
-  "author": "Joan Fabrégat <joan@codeinc.co>",
+  "author": "Joan Fabr\u00e9gat <joan@codeinc.co>",
   "main": "main.mjs",
   "dependencies": {
     "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1",
-    "uniqid": "^5.4.0"
+    "busboy": "^1.6.0"
+  },
+  "private": true,
+  "scripts": {
+    "start": "node main.mjs",
+    "test": "node --test test/*.test.mjs"
   }
 }

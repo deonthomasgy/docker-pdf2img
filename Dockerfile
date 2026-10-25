@@ -1,63 +1,28 @@
-# Copyright (c) 2025 Joan Fabrégat <j@fabreg.at>
-# Permission is hereby granted, free of charge, to any person
-# obtaining a copy of this software and associated documentation
-# files (the "Software"), to deal in the Software without
-# restriction, subject to the conditions in the full MIT License.
-# The Software is provided "as is", without warranty of any kind.
-
-##
-# Base image
-##
-FROM --platform=$TARGETPLATFORM node:lts-alpine AS base
-
-ENV PORT=3000
-ENV NODE_ENV=production
+# Copyright (c) 2025 Joan Fabrégat. MIT; see LICENSE.
+ARG NODE_IMAGE=node:24.22.1-alpine3.23@sha256:0468540aa58203ff9e40c2aab3907c52644ab818af6176b1c70a026137dc92a2
+FROM ${NODE_IMAGE} AS dependencies
 WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
-# Install system dependencies:
-# - imagemagick: for image post-processing (convert command)
-# - imagemagick-pdf: PDF support for ImageMagick
-# - poppler-utils: PDF rendering tools (includes pdftocairo for high-quality PDF to image conversion)
-# - fonts: various font packages for better text rendering
-RUN apk add --no-cache imagemagick imagemagick-pdf poppler-utils \
-    ttf-liberation ttf-dejavu fontconfig \
-    font-noto font-noto-cjk font-noto-emoji \
-    ttf-opensans font-awesome \
-    font-terminus font-inconsolata
-
-
-##
-# Dev image
-##
-FROM base AS pdf2img-dev
-
-ENV NODE_ENV=development
-RUN npm install --global nodemon
-
-EXPOSE $PORT
-ENTRYPOINT ["nodemon", "main.mjs"]
-
-
-##
-# Prod image
-##
-FROM base AS pdf2img-prod
-
-ARG PORT
-ARG VERSION
-ARG BUILD_ID
-ARG COMMIT_SHA
-
-ENV PORT=${PORT}
-ENV VERSION=${VERSION}
-ENV BUILD_ID=${BUILD_ID}
-ENV COMMIT_SHA=${COMMIT_SHA}
-
-COPY main.mjs /app/
-COPY package.json /app/
-COPY package-lock.json /app/
-RUN mkdir -p /app/temp
-RUN npm install --omit=dev
-
-EXPOSE $PORT
+FROM ${NODE_IMAGE} AS pdf2img-prod
+RUN apk upgrade --no-cache && apk add --no-cache \
+    imagemagick imagemagick-pdf imagemagick-jpeg imagemagick-webp imagemagick-tiff poppler-utils \
+    ttf-liberation ttf-dejavu fontconfig font-noto font-noto-cjk font-noto-emoji \
+    ttf-opensans font-awesome font-terminus font-inconsolata \
+    && rm -rf /usr/local/lib/node_modules /opt/yarn* /usr/local/bin/npm /usr/local/bin/npx \
+       /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/include/node
+WORKDIR /app
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY package*.json main.mjs ./
+COPY policy.xml /etc/ImageMagick-7/policy.xml
+ARG VERSION=20261025-node24-r1
+ARG BUILD_ID=local
+ARG COMMIT_SHA=unknown
+ENV NODE_ENV=production PORT=3000 VERSION=${VERSION} BUILD_ID=${BUILD_ID} COMMIT_SHA=${COMMIT_SHA}
+LABEL org.opencontainers.image.source=https://github.com/deonthomasgy/docker-pdf2img \
+      org.opencontainers.image.version=${VERSION} org.opencontainers.image.revision=${COMMIT_SHA}
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s CMD node -e "fetch('http://127.0.0.1:3000/').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
 ENTRYPOINT ["node", "main.mjs"]

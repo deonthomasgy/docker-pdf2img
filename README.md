@@ -1,135 +1,22 @@
-# PDF to Image Converter API
+# PDF2IMG
 
-[![Build and push](https://github.com/joanfabregat/pdf2img/actions/workflows/build.yml/badge.svg)](https://github.com/joanfabregat/pdf2img/actions/workflows/build.yml)
-[![Docker Image Version](https://img.shields.io/docker/v/joanfabregat/pdf2img?sort=semver&label=Docker%20Hub&color=red)](https://hub.docker.com/r/joanfabregat/pdf2img/tags)
+Maintained security build of Joan Fabrégat's MIT-licensed PDF conversion service, including the existing payroll font improvements. Source: https://github.com/deonthomasgy/docker-pdf2img. Images: `princeamd/pdf2img`.
 
-A lightweight Express.js service that converts PDF files to various image formats using 
-[Poppler's pdftocairo](https://poppler.freedesktop.org/) for high-quality PDF rendering 
-and [ImageMagick](https://imagemagick.org/) for post-processing.
+The HTTP contract remains `GET /` for metadata and `POST /convert` with multipart `file` plus optional `format`, `density`, `page`, `width`, `height`, `quality`, and `background`. PDF output used by Mintage payroll is retained.
 
-## Features
+Supported outputs: webp (default), png, jpg/jpeg, pdf, tiff, gif. Defaults: 300 DPI, first page, 800×600 bounding box, quality 80, white background. Background accepts named or hex colours. Conversion preserves aspect ratio.
 
-- Convert PDF files to images (webp, jpg, png, etc.)
-- Configure conversion parameters (density, quality, dimensions, etc.)
-- Simple REST API interface
+Security limits: 20 MiB uploads; one simultaneous request (additional requests return 503 with Retry-After); 55-second request deadline; 40-second subprocess limit; density 36–600, page 1–10000, dimensions 1–5000, quality 1–100. Oversized rendered pages are capped at 5000 pixels on their longest side. Invalid inputs return 400; failed conversions return 422. Temporary files are removed after responses and failures.
 
-## Requirements
+Node remains on 24.x and Alpine on 3.23. Express remains on 4.x. The unused npm/Yarn runtime tools and their vulnerable glob CLI copies are removed. The vulnerable Multer 1 wrapper is replaced with bounded use of the same Busboy 1 parser family, without adopting a new framework/runtime major. Poppler reads PDFs; ImageMagick can read only generated PNGs and write the allowlisted output formats. ImageMagick delegates, filters and indirect file reads are disabled. The service runs as UID 1000 with a read-only filesystem, limited temporary storage/resources and no Linux capabilities.
 
-- Node.js (v14 or higher recommended)
-- Poppler Utils (`pdftocairo` command must be available in your PATH)
-- ImageMagick (`convert` command must be available in your PATH)
+## Build and verify
 
-## Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/jfabregat/pdf-to-image.git
-cd pdf-to-image
+```sh
+docker build --build-arg COMMIT_SHA="$(git rev-parse HEAD)" -t pdf2img:local .
+docker run --rm --memory 1g --cpus 2 --pids-limit 128 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=1g -v "$PWD/test:/app/test:ro" --entrypoint node pdf2img:local --test test/security.test.mjs
+trivy image --severity CRITICAL,HIGH --exit-code 1 pdf2img:local
+python3 scripts/smoke.py https://pdf2img.sphinx-butterfly.ts.net
 ```
 
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Install system dependencies:
-    
-    **Poppler Utils** (for PDF rendering):
-    - **Linux/Ubuntu/Debian**: `sudo apt-get install poppler-utils`
-    - **macOS**: `brew install poppler`
-    - **Windows**: Download from [Poppler for Windows](https://github.com/oschwartz10612/poppler-windows/releases/)
-    
-    **ImageMagick** (for image post-processing):
-    - **Linux**: `sudo apt-get install imagemagick`
-    - **macOS**: `brew install imagemagick`
-    - **Windows**: Download from [ImageMagick website](https://imagemagick.org/script/download.php)
-
-## Usage
-
-### Starting the server
-
-```bash
-npm start
-```
-
-The server will start on port 3000 by default. You can configure the port using the `PORT` environment variable.
-
-### Environment Variables
-
-- `PORT`: Server port (default: 3000)
-- `VERSION`: Application version
-- `BUILD_ID`: Build identifier
-- `COMMIT_SHA`: Git commit SHA
-
-### API Endpoints
-
-#### GET /
-
-Returns version and uptime information.
-
-**Response:**
-
-```json
-{
-  "upSince": "2025-03-16T10:00:00.000Z",
-  "version": "1.0.0",
-  "buildId": "12345",
-  "commitSha": "abc123"
-}
-```
-
-#### POST /convert
-
-Converts a PDF file to an image.
-
-**Request:**
-
-- Method: POST
-- Content-Type: multipart/form-data
-- Body:
-    - `file`: PDF file (required)
-    - `format`: Output image format (default: webp)
-    - `density`: DPI for conversion (default: 300)
-    - `background`: Background color (default: white)
-    - `width`: Output width in pixels (default: 800)
-    - `height`: Output height in pixels (default: 600)
-    - `quality`: Output image quality (default: 80%)
-    - `page`: PDF page to convert (default: 1)
-
-**Example:**
-
-```bash
-curl -X POST http://localhost:3000/convert \
-  -F "file=@document.pdf" \
-  -F "format=jpg" \
-  -F "density=200" \
-  -F "width=1200" \
-  -F "page=2"
-```
-
-## Docker Support
-
-A Dockerfile is provided to containerize the application:
-
-```bash
-docker build -t pdf-to-image .
-docker run -p 3000:3000 pdf-to-image
-```
-
-## Security Considerations
-
-- This service uses temporary files that are automatically cleaned up after processing
-- No authentication is implemented - consider adding authentication for production use
-- Verify and validate all input parameters as needed for your environment
-
-## License
-
-Copyright (c) 2025 Joan Fabrégat <j@fabreg.at>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, subject to the conditions in the MIT
-License.
-
-The Software is provided "as is", without warranty of any kind.
+Use `PDF2IMG_IMAGE` with a verified immutable digest for Compose. Do not run two TSDProxy instances with the same persisted PDF2IMG node state. Deployment and rollback evidence is recorded under `security/`; private state backups remain on the hosts, never in Git.
